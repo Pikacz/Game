@@ -7,6 +7,7 @@
 3. Install extension Run On Save (https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave)
 4. Install extension Code Spell Checker (https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)
 5. Install extension clagd (https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd)
+6. Install extension Todo Tree (https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.todo-tree)
 
 ## Building:
 

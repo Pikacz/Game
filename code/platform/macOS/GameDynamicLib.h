@@ -17,6 +17,14 @@ struct GameDynamicLib {
     }
   }
 
+  GAME_PROCESS_EVENT(GameProcessEvent) {
+    if (_GameProcessEvent) {
+      _GameProcessEvent(event);
+    } else {
+      LOG_ERROR("Unable to call GameUpdateAndRender\n");
+    }
+  }
+
   void Initialize() { memset(this, 0, sizeof(GameDynamicLib)); }
 
   void LoadIfNeeded(const char *path) {
@@ -52,12 +60,20 @@ struct GameDynamicLib {
       LOG_ERROR(
           "Unable to load GameUpdateAndRender function from %s, error %s\n",
           path, dlerror());
-      return;
     }
+
+    _GameProcessEvent =
+        (game_process_event_function *)dlsym(dlibHandle, "GameProcessEvent");
+    if (!_GameProcessEvent) {
+      LOG_ERROR("Unable to load GameProcessEvent function from %s, error %s\n",
+                path, dlerror());
+    }
+
     return;
   }
 
   std::time_t dLibTimestamp;
   void *dlibHandle;
   game_update_and_render_function *_GameUpdateAndRenderFunc;
+  game_process_event_function *_GameProcessEvent;
 };

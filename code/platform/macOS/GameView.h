@@ -1,11 +1,13 @@
 #pragma once
 
 #import <AppKit/AppKit.h>
+#include <__config>
 
 #include "Logging.h"
 #include "game_platform_header.h"
 
-DisplayBuffer *CreateDisplayBuffer(size_t width, size_t height, double dpi) {
+DisplayBuffer *_Nonnull CreateDisplayBuffer(size_t width, size_t height,
+                                            double dpi) {
   vm_address_t address = 0;
   kern_return_t result =
       vm_allocate(mach_task_self(), &address,
@@ -23,7 +25,7 @@ DisplayBuffer *CreateDisplayBuffer(size_t width, size_t height, double dpi) {
   return buffer;
 }
 
-void FreeDisplayBuffer(DisplayBuffer *buffer) {
+void FreeDisplayBuffer(DisplayBuffer *_Nonnull buffer) {
   kern_return_t result =
       vm_deallocate(mach_task_self(), (vm_address_t)buffer,
                     sizeof(DisplayBuffer) +
@@ -40,7 +42,7 @@ void FreeDisplayBuffer(DisplayBuffer *buffer) {
 
 @implementation GameView
 
-- (instancetype)initWithCoder:(NSCoder *)coder {
+- (nullable instancetype)initWithCoder:(NSCoder *_Nonnull)coder {
   self = [super initWithCoder:coder];
   if (self) {
     [self setupBuffer];
@@ -48,7 +50,7 @@ void FreeDisplayBuffer(DisplayBuffer *buffer) {
   return self;
 }
 
-- (instancetype)initWithFrame:(NSRect)frameRect {
+- (_Nonnull instancetype)initWithFrame:(NSRect)frameRect {
   self = [super initWithFrame:frameRect];
   if (self) {
     [self setupBuffer];
