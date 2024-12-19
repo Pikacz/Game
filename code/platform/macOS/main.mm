@@ -1,11 +1,7 @@
-#import <Cocoa/Cocoa.h>
-#import <Foundation/Foundation.h>
-#import <unistd.h>
+#import <AppKit/AppKit.h>
+#include <Foundation/Foundation.h>
 
-#include <cstdio>
-
-#include "GameDynamicLib.h"
-#include "game_platform_header.h"
+#include "GameWindow.h"
 
 inline void SetWorkingDirectory() {
   NSString *executablePath = [[NSBundle mainBundle] executablePath];
@@ -15,16 +11,28 @@ inline void SetWorkingDirectory() {
       changeCurrentDirectoryPath:executableDirectory];
 }
 
+@interface GameMain : NSObject <NSApplicationDelegate>
+@property(strong, nonatomic) GameWindow *window;
+@end
+
+@implementation GameMain
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  self.window = [[GameWindow alloc] init];
+  [self.window makeKeyAndOrderFront:nil];
+}
+@end
+
 int main(int argc, const char *argv[]) {
   @autoreleasepool {
     SetWorkingDirectory();
-    GameDynamicLib gameLib = {};
-    gameLib.LoadIfNeeded(GAME_DLIB);
-    while (true) {
-      gameLib.GameUpdateAndRender();
-      sleep(1);
-      gameLib.LoadIfNeeded(GAME_DLIB);
-    }
+
+    GameMain *delegate = [[GameMain alloc] init];
+    [NSApplication sharedApplication].delegate = delegate;
+
+    [NSApp run];
+
+    [NSApplication sharedApplication];
   }
 
   return 0;

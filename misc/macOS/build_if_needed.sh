@@ -12,7 +12,7 @@ export BuildTimestampDir="$BuildDir/.time"
 export ExeName="game"
 export DLibName="game.dlib"
 
-CommonCompilerFlags=""
+CommonCompilerFlags="-D GAME_SLOW=1"
 PlatformCompilerFlags="-D PLATFORM=1 -D GAME_DLIB=\"$DLibName\""
 PlatformFrameworks="-framework Cocoa"
 GameCompilerFlags=""

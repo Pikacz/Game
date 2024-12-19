@@ -9,6 +9,7 @@
         ]
     },
     "clangd.fallbackFlags": [
+        "-D GAME_SLOW=1",
         "-D GAME_DLIB=\"game.dlib\"",
         "-I${workspaceFolder}/code/game",
     ],

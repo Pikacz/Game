@@ -3,18 +3,21 @@
 #include "Logging.h"
 #include "game_platform_header.h"
 
+#include <cstring>
 #include <ctime>
 #include <dlfcn.h>
 #include <sys/stat.h>
 
 struct GameDynamicLib {
-  void GameUpdateAndRender() {
+  GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
     if (_GameUpdateAndRenderFunc) {
-      _GameUpdateAndRenderFunc();
+      _GameUpdateAndRenderFunc(displayBuffer);
     } else {
       LOG_ERROR("Unable to call GameUpdateAndRender\n");
     }
   }
+
+  void Initialize() { memset(this, 0, sizeof(GameDynamicLib)); }
 
   void LoadIfNeeded(const char *path) {
     std::time_t currentTimestamp;
@@ -27,6 +30,7 @@ struct GameDynamicLib {
     }
     if (currentTimestamp > dLibTimestamp) {
       _Load(path);
+      dLibTimestamp = currentTimestamp;
     }
   }
 
