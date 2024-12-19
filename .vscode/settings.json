@@ -1,0 +1,15 @@
+{
+    "editor.formatOnSave": true,
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": ".*",
+                "cmd": "./misc/macOS/build_if_needed.sh"
+            }
+        ]
+    },
+    "clangd.fallbackFlags": [
+        "-D GAME_DLIB=\"game.dlib\"",
+        "-I${workspaceFolder}/code/game",
+    ],
+}

@@ -1,0 +1,39 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "ignoreWords": [],
+    "words": [],
+    "languageSettings": [
+        {
+            "languageId": "objective-cpp",
+            "dictionaries": [
+                "cpp"
+            ]
+        }
+    ],
+    "overrides": [
+        {
+            "filename": "Readme.md",
+            "ignoreWords": [
+                "clagd",
+            ],
+        },
+        {
+            "filename": "*.sh",
+            "language": "en",
+            "words": [
+                "dlib",
+                "DPLATFORM",
+                "dynamiclib",
+                "realpath",
+            ]
+        },
+        {
+            "filename": "*.mm",
+            "language": "en",
+            "words": [
+                "autoreleasepool",
+            ]
+        }
+    ]
+}
