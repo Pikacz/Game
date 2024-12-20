@@ -10,19 +10,43 @@
 #include "GameView.h"
 #include "game_platform_header.h"
 
-@interface GameWindow : NSWindow <NSWindowDelegate>
-@property(strong, nonatomic) GameView *mainView;
-@property(nonatomic, strong) NSTimer *timer;
+GameMemory *_Nonnull CreateGameMemory() {
+  size_t size = 1024 * 1024 * 1024 * sizeof(uint8_t);
+  vm_address_t address = 0;
+  kern_return_t result = vm_allocate(
+      mach_task_self(), &address, sizeof(GameMemory) + size, VM_FLAGS_ANYWHERE);
+  if (result != KERN_SUCCESS) {
+    LOG_ERROR("Unable to allocate Display Buffer. Error %d (%s)\n", result,
+              mach_error_string(result));
+  }
+  GameMemory *memory = (GameMemory *)address;
+  memory->size = size;
+  return memory;
+}
 
-- (instancetype)init;
+void FreeGameMemory(GameMemory *_Nonnull memory) {
+  kern_return_t result = vm_deallocate(mach_task_self(), (vm_address_t)memory,
+                                       sizeof(GameMemory) + memory->size);
+  if (result != KERN_SUCCESS) {
+    LOG_ERROR("Unable to deallocate Display Buffer. Error %d (%s)\n", result,
+              mach_error_string(result));
+  }
+}
+
+@interface GameWindow : NSWindow <NSWindowDelegate>
+@property(strong, nonatomic) GameView *_Nonnull mainView;
+@property(nonatomic, strong) NSTimer *_Nonnull timer;
+
+- (instancetype _Nonnull)init;
 @end
 
 @implementation GameWindow {
   struct GameDynamicLib _gameLib;
   uint16_t _mouseButtons;
+  struct GameMemory *_gameMemory;
 }
 
-- (instancetype)init {
+- (instancetype _Nonnull)init {
 
   self = [super
       initWithContentRect:(NSMakeRect(0, 0, 800, 600))
@@ -36,10 +60,13 @@
   self.mainView = [[GameView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
   self.contentView = self.mainView;
 
+  _gameMemory = CreateGameMemory();
+
   _gameLib.Initialize();
   _mouseButtons = 0;
   _gameLib.LoadIfNeeded(GAME_DLIB);
-  _gameLib.GameUpdateAndRender(self.mainView.displayBuffer);
+  _gameLib.GameInitMemory(_gameMemory);
+  _gameLib.GameUpdateAndRender(self.mainView.displayBuffer, _gameMemory);
   self.mainView.needsDisplay = true;
 
   self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0f / 60.0f
@@ -51,24 +78,29 @@
   return self;
 }
 
-- (void)sendEvent:(NSEvent *)event {
+- (void)dealloc {
+  FreeGameMemory(_gameMemory);
+  [super dealloc];
+}
+
+- (void)sendEvent:(NSEvent *_Nonnull)event {
   UserInputEvent gameEvent;
   switch ([event type]) {
   case NSEventTypeKeyDown: {
     gameEvent.type = UserInputCharacterDown;
     gameEvent.value.character =
         [[event characters] cStringUsingEncoding:NSUTF8StringEncoding];
-    _gameLib.GameProcessEvent(&gameEvent);
+    _gameLib.GameProcessEvent(&gameEvent, _gameMemory);
 
     gameEvent.type = UserInputEventKeyDown;
     gameEvent.value.keyboardKey = [event keyCode];
-    _gameLib.GameProcessEvent(&gameEvent);
+    _gameLib.GameProcessEvent(&gameEvent, _gameMemory);
     return;
   } break;
   case NSEventTypeKeyUp: {
     gameEvent.type = UserInputEventKeyUp;
     gameEvent.value.keyboardKey = [event keyCode];
-    _gameLib.GameProcessEvent(&gameEvent);
+    _gameLib.GameProcessEvent(&gameEvent, _gameMemory);
     return;
   } break;
   case NSEventTypeFlagsChanged: {
@@ -119,7 +151,7 @@
       NSLog(@"changed TODO %u", [event keyCode]);
     } break;
     }
-    _gameLib.GameProcessEvent(&gameEvent);
+    _gameLib.GameProcessEvent(&gameEvent, _gameMemory);
   } break;
   case NSEventTypeLeftMouseDragged:
   case NSEventTypeRightMouseDragged:
@@ -127,13 +159,13 @@
     _mouseButtons |= (1 << [event buttonNumber]);
     [self processMouseAt:[event locationInWindow] gameEvent:&gameEvent.value];
     gameEvent.type = UserInputEventMouseMove;
-    _gameLib.GameProcessEvent(&gameEvent);
+    _gameLib.GameProcessEvent(&gameEvent, _gameMemory);
   } break;
   case NSEventTypeMouseMoved: {
     _mouseButtons = 0;
     [self processMouseAt:[event locationInWindow] gameEvent:&gameEvent.value];
     gameEvent.type = UserInputEventMouseMove;
-    _gameLib.GameProcessEvent(&gameEvent);
+    _gameLib.GameProcessEvent(&gameEvent, _gameMemory);
   } break;
   case NSEventTypeMouseEntered: {
     _mouseButtons = 0;
@@ -147,7 +179,7 @@
     _mouseButtons |= (1 << [event buttonNumber]);
     [self processMouseAt:[event locationInWindow] gameEvent:&gameEvent.value];
     gameEvent.type = UserInputEventMouseButtonsChanges;
-    _gameLib.GameProcessEvent(&gameEvent);
+    _gameLib.GameProcessEvent(&gameEvent, _gameMemory);
   } break;
 
   case NSEventTypeLeftMouseUp:
@@ -156,7 +188,7 @@
     _mouseButtons &= ~(1 << [event buttonNumber]);
     [self processMouseAt:[event locationInWindow] gameEvent:&gameEvent.value];
     gameEvent.type = UserInputEventMouseButtonsChanges;
-    _gameLib.GameProcessEvent(&gameEvent);
+    _gameLib.GameProcessEvent(&gameEvent, _gameMemory);
   } break;
   case NSEventTypePressure: {
     // TODO: Do i care about trackpad?
@@ -171,7 +203,7 @@
 }
 
 - (void)processMouseAt:(NSPoint)cursorLocation
-             gameEvent:(UserInputEventValue *)gameEventValue {
+             gameEvent:(UserInputEventValue *_Nonnull)gameEventValue {
 
   NSPoint pointInView = [self.mainView convertPoint:cursorLocation
                                            fromView:NULL];
@@ -188,13 +220,13 @@
 #if GAME_SLOW
   _gameLib.LoadIfNeeded(GAME_DLIB);
 #endif
-  _gameLib.GameUpdateAndRender(self.mainView.displayBuffer);
+  _gameLib.GameUpdateAndRender(self.mainView.displayBuffer, _gameMemory);
   self.mainView.needsDisplay = true;
 }
 
 #pragma mark GameWindow - NSWindowDelegate
 
-- (void)windowWillClose:(NSNotification *)notification {
+- (void)windowWillClose:(NSNotification *_Nonnull)notification {
   [NSApp stop:NULL];
 }
 @end

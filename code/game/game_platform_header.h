@@ -10,7 +10,16 @@ struct DisplayBuffer {
   uint8_t *bitmap; // RR GG BB AA
 };
 
-#define GAME_UPDATE_AND_RENDER(name) void name(DisplayBuffer *displayBuffer)
+struct GameMemory {
+  size_t size;
+  uint8_t memory[];
+};
+
+#define GAME_INIT_MEMORY(name) void name(GameMemory *memory)
+typedef GAME_INIT_MEMORY(game_init_memory_function);
+
+#define GAME_UPDATE_AND_RENDER(name)                                           \
+  void name(DisplayBuffer *displayBuffer, GameMemory *memory)
 typedef GAME_UPDATE_AND_RENDER(game_update_and_render_function);
 
 enum UserInputEventType {
@@ -38,5 +47,6 @@ struct UserInputEvent {
   UserInputEventValue value;
 };
 
-#define GAME_PROCESS_EVENT(name) void name(UserInputEvent *event)
+#define GAME_PROCESS_EVENT(name)                                               \
+  void name(UserInputEvent *event, GameMemory *memory)
 typedef GAME_PROCESS_EVENT(game_process_event_function);

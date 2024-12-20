@@ -9,9 +9,17 @@
 #include <sys/stat.h>
 
 struct GameDynamicLib {
+  GAME_INIT_MEMORY(GameInitMemory) {
+    if (_GameInitMemory) {
+      _GameInitMemory(memory);
+    } else {
+      LOG_ERROR("Unable to call GameInitMemory\n");
+    }
+  }
+
   GAME_UPDATE_AND_RENDER(GameUpdateAndRender) {
     if (_GameUpdateAndRenderFunc) {
-      _GameUpdateAndRenderFunc(displayBuffer);
+      _GameUpdateAndRenderFunc(displayBuffer, memory);
     } else {
       LOG_ERROR("Unable to call GameUpdateAndRender\n");
     }
@@ -19,9 +27,9 @@ struct GameDynamicLib {
 
   GAME_PROCESS_EVENT(GameProcessEvent) {
     if (_GameProcessEvent) {
-      _GameProcessEvent(event);
+      _GameProcessEvent(event, memory);
     } else {
-      LOG_ERROR("Unable to call GameUpdateAndRender\n");
+      LOG_ERROR("Unable to call GameProcessEvent\n");
     }
   }
 
@@ -54,6 +62,13 @@ struct GameDynamicLib {
       return;
     }
 
+    _GameInitMemory =
+        (game_init_memory_function *)dlsym(dlibHandle, "GameInitMemory");
+    if (!_GameInitMemory) {
+      LOG_ERROR("Unable to load GameInitMemory function from %s, error %s\n",
+                path, dlerror());
+    }
+
     _GameUpdateAndRenderFunc = (game_update_and_render_function *)dlsym(
         dlibHandle, "GameUpdateAndRender");
     if (!_GameUpdateAndRenderFunc) {
@@ -74,6 +89,7 @@ struct GameDynamicLib {
 
   std::time_t dLibTimestamp;
   void *dlibHandle;
+  game_init_memory_function *_GameInitMemory;
   game_update_and_render_function *_GameUpdateAndRenderFunc;
   game_process_event_function *_GameProcessEvent;
 };
