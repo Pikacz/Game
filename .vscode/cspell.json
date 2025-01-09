@@ -1,0 +1,34 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "ignoreWords": [],
+    "words": [],
+    "languageSettings": [],
+    "overrides": [
+        // Windows
+        {
+            "filename": "*.hpp",
+            "ignoreWords": [
+                "LPTR"
+            ]
+        },
+        {
+            "filename": "*.bat",
+            "ignoreWords": [
+                "ERRORLEVEL",
+                "VSCMD",
+                "vcvarsall",
+                "setlocal",
+                "pushd",
+                "popd",
+                "endlocal",
+                "taskkill",
+            ]
+        },
+        // Generic
+        {
+            "filename": "*.hpp",
+            "ignoreWords": []
+        }
+    ]
+}

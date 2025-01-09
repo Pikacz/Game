@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "name": "Win32_platform",
+            "includePath": [
+                "${workspaceFolder}/code/platform_win32/",
+                "${workspaceFolder}/code/game/platform/"
+            ],
+            "defines": [
+                "WIN32"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        },
+        {
+            "name": "Win32_game",
+            "includePath": [],
+            "defines": [
+                "WIN32"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        }
+    ],
+    "version": 4
+}

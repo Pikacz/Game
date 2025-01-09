@@ -1,0 +1,11 @@
+{
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": ".*",
+                "cmd": "${workspaceFolder}\\misc\\win32\\build_if_needed.bat"
+            }
+        ]
+    }
+}
