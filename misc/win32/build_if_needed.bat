@@ -10,7 +10,7 @@ if %ERRORLEVEL% neq 0 (
 set "SharedCompilerFlags=/D WIN32 /WX"
 set "SharedLinkerFlags=/INCREMENTAL:NO"
 set "PlatformCompilerFlags=/I "%DirGamePlatformNoDash%""
-set "PlatformLinkerFlags=kernel32.lib"
+set "PlatformLinkerFlags=kernel32.lib User32.lib"
 set "GameCompilerFlags="
 set "GameLinkerFlags="
 
@@ -61,15 +61,14 @@ if %ERRORLEVEL% neq 0 (
     cmd /c "exit /b 0"
 )
 
-echo cl %SharedCompilerFlags% %PlatformCompilerFlags% "%DirPlatform%main.cpp" /link /OUT:main.exe %SharedLinkerFlags% %PlatformLinkerFlags%
-cl %SharedCompilerFlags% %PlatformCompilerFlags% "%DirPlatform%main.cpp" /link /OUT:main.exe %SharedLinkerFlags% %PlatformLinkerFlags%
+cl %SharedCompilerFlags% %PlatformCompilerFlags% "%DirPlatform%win32_main.cpp" /link /OUT:main.exe %SharedLinkerFlags% %PlatformLinkerFlags%
 
 if %ERRORLEVEL% neq 0 (
     echo Unable to build platform
     exit /b %ERRORLEVEL%
 )
-if exist main.obj (
-    del main.obj
+if exist win32_main.obj (
+    del win32_main.obj
 )
 popd
 echo %SourcesModification% > "%OutFileTimestamp%"

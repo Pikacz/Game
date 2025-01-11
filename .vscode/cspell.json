@@ -7,22 +7,32 @@
     "overrides": [
         // Windows
         {
-            "filename": "*.hpp",
+            "filename": ["win32*.hpp", "win32*.cpp"],
             "ignoreWords": [
-                "LPTR"
+                "HINSTANCE",
+                "HREDRAW",
+                "LMEM",
+                "LPCSTR",
+                "lpfn",
+                "lpsz",
+                "LPTR",
+                "OVERLAPPEDWINDOW",
+                "WNDCLASSA",
+                "WNDPROC",
             ]
         },
+        // Batch
         {
             "filename": "*.bat",
             "ignoreWords": [
-                "ERRORLEVEL",
-                "VSCMD",
-                "vcvarsall",
-                "setlocal",
-                "pushd",
-                "popd",
                 "endlocal",
+                "ERRORLEVEL",
+                "popd",
+                "pushd",
+                "setlocal",
                 "taskkill",
+                "vcvarsall",
+                "VSCMD",
             ]
         },
         // Generic

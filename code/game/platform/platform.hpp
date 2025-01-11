@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef WIN32
-#include "_win32.hpp"
+#include "win32_platform.hpp"
 #endif
 
 #define GAME_DO_SOMETHING(name) void name()

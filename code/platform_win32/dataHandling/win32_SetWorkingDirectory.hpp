@@ -7,7 +7,7 @@
 static LPSTR _GetExecutablePath()
 {
     DWORD bufferSize = 4 * MAX_PATH;
-    LPSTR buffer = static_cast<LPSTR>(LocalAlloc(LPTR, bufferSize));
+    LPSTR buffer = static_cast<LPSTR>(LocalAlloc(LPTR, bufferSize * sizeof(CHAR)));
 
     while (true)
     {
@@ -18,7 +18,7 @@ static LPSTR _GetExecutablePath()
             {
                 bufferSize *= 2;
                 LocalFree(buffer);
-                buffer = static_cast<LPSTR>(LocalAlloc(LPTR, bufferSize));
+                buffer = static_cast<LPSTR>(LocalAlloc(LPTR, bufferSize * sizeof(CHAR)));
             }
             else if (error)
             {
