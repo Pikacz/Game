@@ -10,7 +10,7 @@ if %ERRORLEVEL% neq 0 (
 set "SharedCompilerFlags=/D WIN32 /WX"
 set "SharedLinkerFlags=/INCREMENTAL:NO"
 set "PlatformCompilerFlags=/I "%DirGamePlatformNoDash%""
-set "PlatformLinkerFlags=kernel32.lib User32.lib"
+set "PlatformLinkerFlags=kernel32.lib User32.lib Gdi32.lib"
 set "GameCompilerFlags="
 set "GameLinkerFlags="
 

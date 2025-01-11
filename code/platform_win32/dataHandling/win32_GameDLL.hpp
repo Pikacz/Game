@@ -63,19 +63,51 @@ static constexpr const char *_DLL_TO_LOAD = "game.dll";
 
 struct GameDLL
 {
-    GAME_DO_SOMETHING(DoSomething)
+    GAME_INITIALIZE(GameInitialize)
     {
 #if SLOW
-        if (doSomething)
+        if (gameInitialize)
         {
-            doSomething();
+            gameInitialize(memory);
         }
         else
         {
-            LOG("Trying to call DoSomething without DLL loaded\n");
+            LOG("Trying to call GameInitialize without DLL loaded\n");
         }
 #else
-        doSomething();
+        gameInitialize(memory);
+#endif
+    }
+
+    GAME_PROCESS_TICK(GameProcessTick)
+    {
+#if SLOW
+        if (gameProcessTick)
+        {
+            gameProcessTick(memory, ticksElapsed);
+        }
+        else
+        {
+            LOG("Trying to call GameProcessTick without DLL loaded\n");
+        }
+#else
+        gameProcessTick(memory, ticksElapsed);
+#endif
+    }
+
+    GAME_PREPARE_FOR_RENDERER(GamePrepareForRenderer)
+    {
+#if SLOW
+        if (gamePrepareForRenderer)
+        {
+            gamePrepareForRenderer(memory, renderingInfo);
+        }
+        else
+        {
+            LOG("Trying to call GamePrepareForRenderer without DLL loaded\n");
+        }
+#else
+        gamePrepareForRenderer(memory, renderingInfo);
 #endif
     }
 
@@ -110,14 +142,26 @@ struct GameDLL
             LOG_LAST_ERROR("Unable to load %s\n", _DLL_TO_LOAD);
             return;
         }
-        doSomething = (game_do_something_function *)(GetProcAddress(gameDLL, "DoSomething"));
-        if (!doSomething)
+        gameInitialize = (game_initialize_function *)(GetProcAddress(gameDLL, "GameInitialize"));
+        if (!gameInitialize)
         {
-            LOG_LAST_ERROR("Unable to load DoSomething\n");
+            LOG_LAST_ERROR("Unable to load GameInitialize\n");
+        }
+        gameProcessTick = (game_process_tick_function *)(GetProcAddress(gameDLL, "GameProcessTick"));
+        if (!gameProcessTick)
+        {
+            LOG_LAST_ERROR("Unable to load GameProcessTick\n");
+        }
+        gamePrepareForRenderer = (game_prepare_for_renderer_function *)(GetProcAddress(gameDLL, "GamePrepareForRenderer"));
+        if (!gamePrepareForRenderer)
+        {
+            LOG_LAST_ERROR("Unable to load GamePrepareForRenderer\n");
         }
     }
 
     HMODULE gameDLL;
     time_t lastModification;
-    game_do_something_function *doSomething;
+    game_initialize_function *gameInitialize;
+    game_process_tick_function *gameProcessTick;
+    game_prepare_for_renderer_function *gamePrepareForRenderer;
 };

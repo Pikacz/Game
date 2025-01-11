@@ -1,7 +1,14 @@
 #include "dataHandling\win32_SetWorkingDirectory.hpp"
 #include "dataHandling\win32_GameDLL.hpp"
+#include "win32_rendering.hpp"
 #include "Windows.h"
 #include "windowsx.h"
+
+constexpr int renderWidth = 2560;
+constexpr int renderHeight = 1440;
+constexpr int clientWidth = 960;
+constexpr int clientHeight = 540;
+
 
 LRESULT CALLBACK WindowProcedure(HWND hWindow, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -49,7 +56,7 @@ HWND WindowCreate(HINSTANCE hInstance, int clientWidth, int clientHeight)
     }
 
     constexpr DWORD style = WS_OVERLAPPEDWINDOW;
-    constexpr DWORD exStyle = 0;
+    constexpr DWORD exStyle = WS_EX_TOPMOST ;
     RECT rect = {0, 0, clientWidth, clientHeight};
     if (!AdjustWindowRectEx(&rect, style, FALSE, exStyle))
     {
@@ -73,9 +80,16 @@ int main(int argc, const char *argv[])
 {
     HINSTANCE hInstance = GetModuleHandleA(NULL);
 
+    SetProcessDPIAware();
+
     SetWorkingDirectory();
     GameDLL gameDLL = {0};
     gameDLL.Load();
+    GameMemory gameMemory;
+    gameDLL.GameInitialize(&gameMemory);
+
+    Renderer renderer;
+    renderer.Initialize(renderWidth, renderHeight);
 
     LARGE_INTEGER qpcFrequency;
     QueryPerformanceFrequency(&qpcFrequency);
@@ -88,12 +102,19 @@ int main(int argc, const char *argv[])
     LONGLONG nextTickQPC = 0;
     LONGLONG nextRenderQPC = 0;
 
-    HWND hWindow = WindowCreate(hInstance, 800, 600);
+    HWND hWindow = WindowCreate(hInstance, clientWidth, clientHeight);
     if (!hWindow)
     {
         LOG_LAST_ERROR("Unable to create window\n");
         return 0;
     }
+
+    HDC hdc = GetDC(hWindow);
+    if (!hdc)
+    {
+        LOG_LAST_ERROR("Unable to create device context.\n");
+    }
+
     ShowWindow(hWindow, SW_SHOW);
 
     MSG msg;
@@ -113,17 +134,30 @@ int main(int argc, const char *argv[])
         QueryPerformanceCounter(&qpcNow);
         if (qpcNow.QuadPart >= nextTickQPC)
         {
-            gameDLL.DoSomething();
+            LONGLONG ticksElapsed = (qpcNow.QuadPart - nextTickQPC) / tickInterval + 1;
+#if SLOW
+            if (ticksElapsed > 1)
+            {
+                LOG("TICKS LOST %lld\n", qpcNow.QuadPart - nextTickQPC);
+            }
+#endif
             nextTickQPC = qpcNow.QuadPart + tickInterval;
+            gameDLL.GameProcessTick(&gameMemory, (int)ticksElapsed);
         }
         if (qpcNow.QuadPart >= nextRenderQPC)
         {
+#if SLOW
             if (qpcNow.QuadPart >= nextRenderQPC + renderInterval / 2)
             {
-                LOG("LOST %lld\n", qpcNow.QuadPart - nextRenderQPC);
+                LOG("RENDERING LOST %lld\n", qpcNow.QuadPart - nextRenderQPC);
             }
-            // LOG("Render\n");
+#endif
             nextRenderQPC = qpcNow.QuadPart + renderInterval;
+            gameDLL.GamePrepareForRenderer(&gameMemory, &renderer.gameInfo);
+
+            RECT rect;
+            GetClientRect(hWindow, &rect);
+            renderer.Present(hdc, rect.right - rect.left, rect.bottom - rect.top);
         }
 
         gameDLL.LoadIfNeeded();
@@ -131,6 +165,8 @@ int main(int argc, const char *argv[])
 
 release_and_return:
     // Redundant frees that only waste time since system would clear everything.
-
+#if SLOW
+    renderer.Deinitialize();
+#endif
     return 0;
 }
