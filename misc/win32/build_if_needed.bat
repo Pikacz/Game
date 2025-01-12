@@ -7,7 +7,7 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-set "SharedCompilerFlags=/D WIN32 /WX"
+set "SharedCompilerFlags=/D WIN32 /WX /std:c++17"
 set "SharedLinkerFlags=/INCREMENTAL:NO"
 set "PlatformCompilerFlags=/I "%DirGamePlatformNoDash%""
 set "PlatformLinkerFlags=kernel32.lib User32.lib Gdi32.lib"
@@ -132,7 +132,7 @@ if exist game.dll (
 cl %SharedCompilerFlags% %GameCompilerFlags% "%DirGame%game.cpp" /link /DLL /OUT:game.dll %SharedLinkerFlags% %GameLinkerFlags%
 
 if %ERRORLEVEL% neq 0 (
-    echo Unable to build platform
+    echo Unable to build game
     exit /b %ERRORLEVEL%
 )
 if exist game.exp (

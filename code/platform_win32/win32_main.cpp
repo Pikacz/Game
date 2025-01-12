@@ -1,14 +1,17 @@
 #include "dataHandling\win32_SetWorkingDirectory.hpp"
 #include "dataHandling\win32_GameDLL.hpp"
 #include "win32_rendering.hpp"
+#include "win32_memory.hpp"
+
 #include "Windows.h"
 #include "windowsx.h"
 
-constexpr int renderWidth = 2560;
-constexpr int renderHeight = 1440;
-constexpr int clientWidth = 960;
-constexpr int clientHeight = 540;
-
+constexpr int renderWidth = 1920;
+constexpr int renderHeight = 1080;
+constexpr int clientWidth = 1920;
+constexpr int clientHeight = 1080;
+constexpr LONGLONG targetFramesPerSecond = 60;
+constexpr LONGLONG targetTicksPerSecond = 10;
 
 LRESULT CALLBACK WindowProcedure(HWND hWindow, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -56,7 +59,7 @@ HWND WindowCreate(HINSTANCE hInstance, int clientWidth, int clientHeight)
     }
 
     constexpr DWORD style = WS_OVERLAPPEDWINDOW;
-    constexpr DWORD exStyle = WS_EX_TOPMOST ;
+    constexpr DWORD exStyle = WS_EX_TOPMOST;
     RECT rect = {0, 0, clientWidth, clientHeight};
     if (!AdjustWindowRectEx(&rect, style, FALSE, exStyle))
     {
@@ -79,14 +82,20 @@ HWND WindowCreate(HINSTANCE hInstance, int clientWidth, int clientHeight)
 int main(int argc, const char *argv[])
 {
     HINSTANCE hInstance = GetModuleHandleA(NULL);
+#if SLOW
+    LARGE_INTEGER qpcStart;
+    QueryPerformanceCounter(&qpcStart);
+#endif
 
     SetProcessDPIAware();
 
     SetWorkingDirectory();
     GameDLL gameDLL = {0};
     gameDLL.Load();
+
     GameMemory gameMemory;
-    gameDLL.GameInitialize(&gameMemory);
+    GameMemoryInit(&gameMemory);
+    gameDLL.GameInitialize(gameMemory);
 
     Renderer renderer;
     renderer.Initialize(renderWidth, renderHeight);
@@ -95,8 +104,7 @@ int main(int argc, const char *argv[])
     QueryPerformanceFrequency(&qpcFrequency);
 
     LARGE_INTEGER qpcNow;
-    constexpr LONGLONG targetFramesPerSecond = 60;
-    constexpr LONGLONG targetTicksPerSecond = 10;
+
     const LONGLONG renderInterval = qpcFrequency.QuadPart / targetFramesPerSecond;
     const LONGLONG tickInterval = qpcFrequency.QuadPart / targetTicksPerSecond;
     LONGLONG nextTickQPC = 0;
@@ -115,6 +123,11 @@ int main(int argc, const char *argv[])
         LOG_LAST_ERROR("Unable to create device context.\n");
     }
 
+#if SLOW
+    QueryPerformanceCounter(&qpcNow);
+    double setupTime = (double)(qpcNow.QuadPart - qpcStart.QuadPart) / (double)(qpcFrequency.QuadPart);
+    LOG("Setup took %lf seconds.\n", setupTime);
+#endif
     ShowWindow(hWindow, SW_SHOW);
 
     MSG msg;
@@ -142,18 +155,18 @@ int main(int argc, const char *argv[])
             }
 #endif
             nextTickQPC = qpcNow.QuadPart + tickInterval;
-            gameDLL.GameProcessTick(&gameMemory, (int)ticksElapsed);
+            gameDLL.GameProcessTick(gameMemory, (int)ticksElapsed);
         }
         if (qpcNow.QuadPart >= nextRenderQPC)
         {
 #if SLOW
-            if (qpcNow.QuadPart >= nextRenderQPC + renderInterval / 2)
+            if (qpcNow.QuadPart >= nextRenderQPC + renderInterval)
             {
-                LOG("RENDERING LOST %lld\n", qpcNow.QuadPart - nextRenderQPC);
+                LOG("RENDERING LOST %lld frames\n", (qpcNow.QuadPart - nextRenderQPC) / renderInterval);
             }
 #endif
             nextRenderQPC = qpcNow.QuadPart + renderInterval;
-            gameDLL.GamePrepareForRenderer(&gameMemory, &renderer.gameInfo);
+            gameDLL.GamePrepareForRenderer(gameMemory, renderer.gameInfo);
 
             RECT rect;
             GetClientRect(hWindow, &rect);
@@ -167,6 +180,7 @@ release_and_return:
     // Redundant frees that only waste time since system would clear everything.
 #if SLOW
     renderer.Deinitialize();
+    GameMemoryRelease(&gameMemory);
 #endif
     return 0;
 }
