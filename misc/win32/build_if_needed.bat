@@ -1,5 +1,20 @@
 @echo off
 
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 call "%~dp0setup.bat"
 
 if %ERRORLEVEL% neq 0 (
@@ -155,4 +170,55 @@ if %elapsedTime% lss 0 set /a elapsedTime+=1000
 echo Game built in %elapsedTime% milliseconds.
 
 :SkipGameBuild
+endlocal
+
+
+@REM ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Assets ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+setlocal
+
+set "OutFileTimestamp=%DirBuildTimestamps%assets.txt"
+
+for /F "tokens=*" %%F in ('%ExeTimestamps% %DirAssets%') do SET SourcesModification=%%F
+if %ERRORLEVEL% neq 0 (
+    echo Unable to get modification date of platform code
+    exit /b %ERRORLEVEL%
+)
+set /a SourcesModification=%SourcesModification%
+
+
+if not exist "%OutFileTimestamp%" (
+    goto :CopyAssets
+)
+
+set /p BuildTimestamp=<"%DirBuildTimestamps%assets.txt"
+set /a BuildTimestamp=%BuildTimestamp%
+if %ERRORLEVEL% neq 0 (
+    goto :CopyAssets
+)
+
+if %BuildTimestamp% geq %SourcesModification% (
+    goto :SkipCopyAssets
+)
+
+:CopyAssets
+
+echo Copying assets.
+
+if exist %DirBuild%assets (
+    rd /s /q %DirBuild%assets
+)
+
+
+robocopy %DirAssets% %DirBuild%assets /E /MIR
+
+if %ERRORLEVEL% geq 8 (
+    echo Unable copy assets
+    exit /b %ERRORLEVEL%
+)
+
+echo %SourcesModification% > "%OutFileTimestamp%"
+
+:SkipCopyAssets
+
 endlocal

@@ -2,6 +2,8 @@
 
 #include <cstdio>
 #include <cstdlib>
+#define NOMINMAX
+#include "Windows.h"
 
 #define SLOW 1
 
@@ -44,3 +46,9 @@
         LOG_LAST_ERROR(message, ##__VA_ARGS__); \
         exit(1);                                \
     }
+
+struct AssetsManagerFileHandle
+{
+    size_t size;
+    HANDLE _file_Handle;
+};

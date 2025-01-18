@@ -2,11 +2,11 @@
 #include "platform/platform.hpp"
 #include <algorithm>
 
-constexpr Color Color_white = Color(1.0f, 1.0f, 1.0f);
-constexpr Color Color_black = Color(0.0f, 0.0f, 0.0f);
-constexpr Color Color_yellow = Color(1.0f, 1.0f, 0.0f);
+constexpr Pixel Color_white = Pixel(1.0f, 1.0f, 1.0f);
+constexpr Pixel Color_black = Pixel(0.0f, 0.0f, 0.0f);
+constexpr Pixel Color_yellow = Pixel(1.0f, 1.0f, 0.0f);
 
-void drawRect(RenderingInfo renderingInfo, gFloat x, gFloat y, gFloat width, gFloat height, Color color)
+void drawRect(RenderingInfo renderingInfo, gFloat x, gFloat y, gFloat width, gFloat height, Pixel color)
 {
     int left = (int)floor(x);
     int top = (int)floor(y);
@@ -29,7 +29,7 @@ void drawRect(RenderingInfo renderingInfo, gFloat x, gFloat y, gFloat width, gFl
     }
 }
 
-void drawCircle(RenderingInfo renderingInfo, gFloat x, gFloat y, gFloat radius, Color color)
+void drawCircle(RenderingInfo renderingInfo, gFloat x, gFloat y, gFloat radius, Pixel color)
 {
     int left = (int)(x - radius);
     int top = (int)(y - radius);
