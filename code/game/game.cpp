@@ -1,5 +1,6 @@
 #include "platform/platform.hpp"
 #include "game_drawing.hpp"
+#include "fontEngine/trueTypeFont.hpp"
 
 #include <numeric>
 #include <algorithm>
@@ -13,14 +14,15 @@ struct Board
     int playerY;
 };
 
-Board *getBoard(GameMemory memory)
+Board *getBoard(HeapStack memory)
 {
     return (Board *)memory.memory;
 }
 
 extern "C" DLL_EXPORT GAME_INITIALIZE(GameInitialize)
 {
-    Board *board = getBoard(memory);
+    LoadFont(TEXT_AND_SIZE("test_scrapped_assets/simplex.ttf"), platformLayer);
+    Board *board = getBoard(platformLayer->gameStateMemory);
     for (int i = 0; i < boardWidth; ++i)
     {
         board->fields[0][i] = 1;
@@ -42,7 +44,7 @@ extern "C" DLL_EXPORT GAME_PROCESS_TICK(GameProcessTick)
 
 extern "C" DLL_EXPORT GAME_PREPARE_FOR_RENDERER(GamePrepareForRenderer)
 {
-    Board *board = getBoard(memory);
+    Board *board = getBoard(platformLayer->gameStateMemory);
 
     gFloat x;
     gFloat width = (gFloat)renderingInfo.width / (gFloat)boardWidth;

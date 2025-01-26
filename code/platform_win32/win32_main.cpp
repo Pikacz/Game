@@ -1,7 +1,7 @@
 #include "dataHandling\win32_SetWorkingDirectory.hpp"
 #include "dataHandling\win32_GameDLL.hpp"
 #include "win32_rendering.hpp"
-#include "win32_memory.hpp"
+#include "win32_gamePlatform.hpp"
 
 #include "Windows.h"
 #include "windowsx.h"
@@ -12,6 +12,51 @@ constexpr int clientWidth = 1920;
 constexpr int clientHeight = 1080;
 constexpr LONGLONG targetFramesPerSecond = 60;
 constexpr LONGLONG targetTicksPerSecond = 10;
+
+
+// void DoSomethingWithFont(GameMemory memory)
+// {
+//     constexpr wchar_t *path = L"assets\\fonts\\Marck_Script\\MarckScript-Regular.ttf";
+//     constexpr int width = 1024;
+//     constexpr int height = 1024;
+//     if (AddFontResourceExW(path, FR_PRIVATE, nullptr) == 0)
+//     {
+//         LOG("Unable to read font file!\n");
+//         return;
+//     }
+
+//     HDC hdc = CreateCompatibleDC(GetDC(nullptr));
+//     HBITMAP hBitmap = CreateCompatibleBitmap(hdc, width, height);
+//     SelectObject(hdc, hBitmap);
+
+//     SetBkColor(hdc, RGB(255, 255, 255));
+//     SetTextColor(hdc, RGB(0, 0, 0));
+
+//     HFONT hFont = CreateFontW(
+//         48,
+//         0,
+//         0,
+//         0,
+//         FW_NORMAL,
+//         false,
+//         false,
+//         false,
+//         DEFAULT_CHARSET,
+//         OUT_TT_PRECIS,
+//         CLIP_DEFAULT_PRECIS,
+//         ANTIALIASED_QUALITY,
+//         DEFAULT_PITCH | FF_DONTCARE,
+//         L"MarckScript-Regular"
+//     );
+//     if (!hFont) {
+//         LOG_LAST_ERROR("Unable to create font\n");
+//         RemoveFontResourceExW(path, FR_PRIVATE, nullptr);
+//         return;
+//     }
+
+//     HFONT oldFont = (HFONT)SelectObject(hdc, hFont);
+// }
+
 
 LRESULT CALLBACK WindowProcedure(HWND hWindow, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -93,9 +138,9 @@ int main(int argc, const char *argv[])
     GameDLL gameDLL = {0};
     gameDLL.Load();
 
-    GameMemory gameMemory;
-    GameMemoryInit(&gameMemory);
-    gameDLL.GameInitialize(gameMemory);
+    PlatformLayer platformLayer;
+    Win32GamePlatformInit(&platformLayer);
+    gameDLL.GameInitialize(&platformLayer);
 
     Renderer renderer;
     renderer.Initialize(renderWidth, renderHeight);
@@ -155,7 +200,7 @@ int main(int argc, const char *argv[])
             }
 #endif
             nextTickQPC = qpcNow.QuadPart + tickInterval;
-            gameDLL.GameProcessTick(gameMemory, (int)ticksElapsed);
+            gameDLL.GameProcessTick(&platformLayer, (int)ticksElapsed);
         }
         if (qpcNow.QuadPart >= nextRenderQPC)
         {
@@ -166,7 +211,7 @@ int main(int argc, const char *argv[])
             }
 #endif
             nextRenderQPC = qpcNow.QuadPart + renderInterval;
-            gameDLL.GamePrepareForRenderer(gameMemory, renderer.gameInfo);
+            gameDLL.GamePrepareForRenderer(&platformLayer, renderer.gameInfo);
 
             RECT rect;
             GetClientRect(hWindow, &rect);
@@ -180,7 +225,7 @@ release_and_return:
     // Redundant frees that only waste time since system would clear everything.
 #if SLOW
     renderer.Deinitialize();
-    GameMemoryRelease(&gameMemory);
+    GameMemoryRelease(&platformLayer);
 #endif
     return 0;
 }

@@ -22,7 +22,7 @@ if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-set "SharedCompilerFlags=/D WIN32 /WX /std:c++17"
+set "SharedCompilerFlags=/D WIN32 /WX /std:c++17 -openmp:experimental"
 set "SharedLinkerFlags=/INCREMENTAL:NO"
 set "PlatformCompilerFlags=/I "%DirGamePlatformNoDash%""
 set "PlatformLinkerFlags=kernel32.lib User32.lib Gdi32.lib"

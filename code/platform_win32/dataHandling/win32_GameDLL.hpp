@@ -68,14 +68,14 @@ struct GameDLL
 #if SLOW
         if (gameInitialize)
         {
-            gameInitialize(memory);
+            gameInitialize(platformLayer);
         }
         else
         {
             LOG("Trying to call GameInitialize without DLL loaded\n");
         }
 #else
-        gameInitialize(memory);
+        gameInitialize(platformLayer);
 #endif
     }
 
@@ -84,14 +84,14 @@ struct GameDLL
 #if SLOW
         if (gameProcessTick)
         {
-            gameProcessTick(memory, ticksElapsed);
+            gameProcessTick(platformLayer, ticksElapsed);
         }
         else
         {
             LOG("Trying to call GameProcessTick without DLL loaded\n");
         }
 #else
-        gameProcessTick(memory, ticksElapsed);
+        gameProcessTick(platformLayer, ticksElapsed);
 #endif
     }
 
@@ -100,14 +100,14 @@ struct GameDLL
 #if SLOW
         if (gamePrepareForRenderer)
         {
-            gamePrepareForRenderer(memory, renderingInfo);
+            gamePrepareForRenderer(platformLayer, renderingInfo);
         }
         else
         {
             LOG("Trying to call GamePrepareForRenderer without DLL loaded\n");
         }
 #else
-        gamePrepareForRenderer(memory, renderingInfo);
+        gamePrepareForRenderer(platformLayer, renderingInfo);
 #endif
     }
 

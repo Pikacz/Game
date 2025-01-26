@@ -47,7 +47,7 @@
         exit(1);                                \
     }
 
-struct AssetsManagerFileHandle
+struct FileManagerFileHandle
 {
     size_t size;
     HANDLE _file_Handle;

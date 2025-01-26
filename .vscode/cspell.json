@@ -9,6 +9,8 @@
         {
             "filename": ["win32*.hpp", "win32*.cpp"],
             "ignoreWords": [
+                "HBITMAP",
+                "HFONT",
                 "HINSTANCE",
                 "HREDRAW",
                 "LMEM",
@@ -37,8 +39,12 @@
         },
         // Generic
         {
-            "filename": "*.hpp",
-            "ignoreWords": []
+            "filename": "*",
+            "ignoreWords": [
+                "Marck",
+                "panose", // true type font
+                "PPEM", // true type font "the smallest readable size in pixels per em for this font."
+            ]
         }
     ]
 }
