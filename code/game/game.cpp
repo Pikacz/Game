@@ -1,6 +1,7 @@
 #include "platform/platform.hpp"
 #include "game_drawing.hpp"
-#include "fontEngine/trueTypeFont.hpp"
+#include "fontEngine/trueType.h"
+#include "fontEngine/gameFont.h"
 
 #include <numeric>
 #include <algorithm>
@@ -22,6 +23,7 @@ Board *getBoard(HeapStack memory)
 extern "C" DLL_EXPORT GAME_INITIALIZE(GameInitialize)
 {
     LoadFont(TEXT_AND_SIZE("test_scrapped_assets/simplex.ttf"), platformLayer);
+    // LoadFont(TEXT_AND_SIZE("test_scrapped_assets/Roboto-Medium.ttf"), platformLayer);
     Board *board = getBoard(platformLayer->gameStateMemory);
     for (int i = 0; i < boardWidth; ++i)
     {

@@ -4,45 +4,8 @@
 #include "win32_platform.hpp"
 #endif
 
-#define ___LITTLE_ENDIAN 0x41424344UL
-#define ___BIG_ENDIAN 0x44434241UL
-#define ___PDP_ENDIAN 0x42414443UL
-#define ___ENDIAN_ORDER ('ABCD')
-
-#define Swap(a, b) \
-    a ^= b;        \
-    b ^= a;        \
-    a ^= b;
-
-#if ___ENDIAN_ORDER == ___LITTLE_ENDIAN
-#define LITTLE_ENDIAN
-
-#define RB_64B_FROM_BIG_ENDIAN(rawBytes) \
-    Swap((rawBytes)[0], (rawBytes)[7]);  \
-    Swap((rawBytes)[1], (rawBytes)[6]);  \
-    Swap((rawBytes)[2], (rawBytes)[5]);  \
-    Swap((rawBytes)[3], (rawBytes)[4]);
-
-#define RB_32B_FROM_BIG_ENDIAN(rawBytes) \
-    Swap((rawBytes)[0], (rawBytes)[3]);  \
-    Swap((rawBytes)[1], (rawBytes)[2]);
-
-#define RB_16B_FROM_BIG_ENDIAN(rawBytes) \
-    Swap((rawBytes)[0], (rawBytes)[1]);
-
-#elif ___ENDIAN_ORDER == ___BIG_ENDIAN
-#define BIG_ENDIAN
-
-#define RB_32B_FROM_BIG_ENDIAN(rawBytes)
-#define RB_16B_FROM_BIG_ENDIAN(rawBytes)
-
-#elif ___ENDIAN_ORDER == ___PDP_ENDIAN
-#error "jeez, machine is PDP!"
-#else
-#error "What kind of hardware is this?!"
-#endif
-
 #include <cstdint>
+
 
 void crash()
 {
@@ -75,6 +38,11 @@ struct HeapStack
         uint8_t *result = memory + topOffset;
         topOffset += size;
         return result;
+    }
+
+    void pop(size_t size)
+    {
+        topOffset -= size;
     }
 };
 

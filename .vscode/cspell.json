@@ -41,6 +41,7 @@
         {
             "filename": "*",
             "ignoreWords": [
+                "glyf", // true type font
                 "Marck",
                 "panose", // true type font
                 "PPEM", // true type font "the smallest readable size in pixels per em for this font."
