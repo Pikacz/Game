@@ -186,7 +186,7 @@ namespace TTTableHead
         return Int16FromBigEndian(data + 48);
     }
 
-    int16_t indexToLocFormat(const uint8_t *data)
+    uint16_t indexToLocFormat(const uint8_t *data)
     {
         return Int16FromBigEndian(data + 50);
     }
@@ -204,7 +204,7 @@ namespace TTTableHead
         LOG("  unitsPerEm %u created %llu modified %llu\n", unitsPerEm(data), created(data), modified(data));
         LOG("  xMin %d yMin %d xMax %d yMax %d\n", xMin(data), yMin(data), xMax(data), yMax(data));
         LOG("  macStyle %u lowestRecPPEM %u fontDirectionHint %d\n", macStyle(data), lowestRecPPEM(data), fontDirectionHint(data));
-        LOG("  indexToLocFormat %d glyphDataFormat %d\n", indexToLocFormat(data), glyphDataFormat(data));
+        LOG("  indexToLocFormat %u glyphDataFormat %d\n", indexToLocFormat(data), glyphDataFormat(data));
     }
 };
 
@@ -760,6 +760,270 @@ namespace TTTableCMap
     }
 };
 
+namespace TTTableLoca
+{
+    uint32_t offset(const uint8_t *data, uint16_t indexToLocFormat, uint16_t index)
+    {
+        if (indexToLocFormat >= 2)
+            return 0;
+        if (indexToLocFormat == 0)
+        {
+            uint32_t result = UInt16FromBigEndian(data + 2 * index);
+            result <<= 1;
+            return result;
+        }
+        else
+        {
+            return UInt32FromBigEndian(data + 4 * index);
+        }
+    }
+
+    void Log(const uint8_t *data, uint16_t indexToLocFormat, uint16_t numGlyphs)
+    {
+        LOG("Table loca\n");
+        uint32_t current;
+        uint32_t next = offset(data, indexToLocFormat, 0);
+        for (uint16_t i = 0; i < numGlyphs; ++i)
+        {
+            current = next;
+            next = offset(data, indexToLocFormat, i + 1);
+            LOG("%3u :: %5u %5u\n", i, current, next - current);
+        }
+    }
+};
+
+namespace TTTableGlyf
+{
+
+    namespace Glyph
+    {
+        int16_t numberOfContours(const uint8_t *glyph)
+        {
+            return Int16FromBigEndian(glyph);
+        }
+
+        int16_t xMin(const uint8_t *glyph)
+        {
+            return Int16FromBigEndian(glyph + 2);
+        }
+
+        int16_t yMin(const uint8_t *glyph)
+        {
+            return Int16FromBigEndian(glyph + 4);
+        }
+
+        int16_t xMax(const uint8_t *glyph)
+        {
+            return Int16FromBigEndian(glyph + 6);
+        }
+
+        int16_t yMax(const uint8_t *glyph)
+        {
+            return Int16FromBigEndian(glyph + 8);
+        }
+
+        namespace Simple
+        {
+
+            void Log(const uint8_t *glyph, int16_t numberOfContours)
+            {
+                const uint8_t *endPtsOfContours = glyph;
+                uint16_t instructionLength = UInt16FromBigEndian(glyph + 2 * numberOfContours);
+                LOG("instr Len %u\n", instructionLength);
+                const uint8_t *instructions = glyph + 2 * numberOfContours + 2;
+                const uint8_t *flags = instructions + instructionLength;
+                uint16_t pointsTotal = UInt16FromBigEndian(glyph + 2 * (numberOfContours - 1)) + 1;
+                LOG("points total asd: %u\n", pointsTotal);
+                uint16_t currentIndex = 0;
+                uint16_t totalXLength = 0;
+                uint16_t flagsOffset = 0;
+                uint16_t xLength;
+                uint8_t flag;
+                uint16_t repeatCount;
+                constexpr uint8_t xShortVector = 1 << 1;
+                constexpr uint8_t yShortVector = 1 << 2;
+                constexpr uint8_t repeat = 1 << 3;
+                constexpr uint8_t xIsSame = 1 << 4;
+                constexpr uint8_t yIsSame = 1 << 5;
+                // TODO ZABUGOWANE
+                uint8_t flagRepeatCount = 0;
+                while (currentIndex < pointsTotal)
+                {
+                    if (flagRepeatCount)
+                    {
+                        flagRepeatCount--;
+                    }
+                    else
+                    {
+                        flag = flags[flagsOffset++];
+                        if (flag & repeat)
+                        {
+                            flagRepeatCount = flags[flagsOffset++];
+                        }
+                    }
+
+                    if (flag & xShortVector)
+                    {
+                        totalXLength += 1;
+                    }
+                    else if (flag & xIsSame)
+                    {
+                    }
+                    else
+                    {
+                        totalXLength += 2;
+                    }
+
+                    currentIndex += 1;
+                }
+                const uint8_t *xPoints = flags + flagsOffset;
+                const uint8_t *yPoints = xPoints + totalXLength;
+
+                currentIndex = 0;
+                flagsOffset = 0;
+                flagRepeatCount = 0;
+                uint16_t xOffset = 0;
+                uint16_t yOffset = 0;
+                int16_t pointX = 0;
+                int16_t pointY = 0;
+
+                int16_t tmp;
+
+                for (int16_t contourIdx = 0; contourIdx < numberOfContours; contourIdx++)
+                {
+                    LOG("%2d ", contourIdx);
+                    pointsTotal = UInt16FromBigEndian(glyph + 2 * contourIdx) + 1;
+                    LOG("points for contour: %u\n", pointsTotal);
+                    while (currentIndex < pointsTotal)
+                    {
+                        if (flagRepeatCount)
+                        {
+                            flagRepeatCount--;
+                        }
+                        else
+                        {
+                            flag = flags[flagsOffset++];
+                            if (flag & repeat)
+                            {
+                                flagRepeatCount = flags[flagsOffset++];
+                            }
+                        }
+
+                        if (flag & xShortVector)
+                        {
+
+                            tmp = xPoints[xOffset++];
+                            if (flag & xIsSame)
+                            {
+                                pointX += tmp;
+                            }
+                            else
+                            {
+                                pointX -= tmp;
+                            }
+                        }
+                        else
+                        {
+                            if (flag & xIsSame)
+                            {
+                            }
+                            else
+                            {
+                                tmp = Int16FromBigEndian(xPoints + xOffset);
+
+                                pointX += tmp;
+                                xOffset += 2;
+                            }
+                        }
+
+                        if (flag & yShortVector)
+                        {
+                            tmp = yPoints[yOffset++];
+                            if (flag & yIsSame)
+                            {
+                                pointY += tmp;
+                            }
+                            else
+                            {
+                                pointY -= tmp;
+                            }
+                        }
+                        else
+                        {
+                            if (flag & yIsSame)
+                            {
+                            }
+                            else
+                            {
+                                tmp = Int16FromBigEndian(yPoints + yOffset);
+                                pointY += tmp;
+                                yOffset += 2;
+                            }
+                        }
+                        LOG("(%5d,%5d) \n", pointX, pointY);
+
+                        currentIndex += 1;
+                    }
+                    LOG("\n");
+                }
+
+                LOG("TODO\n");
+            }
+        };
+
+        namespace Compound
+        {
+            void Log(const uint8_t *glyph)
+            {
+                LOG("TODO\n");
+            }
+        };
+
+        void Log(const uint8_t *glyph, uint32_t length)
+        {
+            if (length)
+            {
+                int16_t contours = numberOfContours(glyph);
+                if (contours >= 0)
+                {
+                    LOG("Simple glyph with %d contours\n", contours);
+                }
+                else
+                {
+                    LOG("Compound glyph\n");
+                }
+                LOG("  xMin %d yMin %d xMax %d yMax %d\n", xMin(glyph), yMin(glyph), xMax(glyph), yMax(glyph));
+                if (contours >= 0)
+                {
+                    Simple::Log(glyph + 10, contours);
+                }
+                else
+                {
+                    Compound::Log(glyph);
+                }
+            }
+            else
+            {
+                LOG("NULL glyph\n");
+            }
+        }
+    };
+
+    void Log(const uint8_t *data, const uint8_t *loca, uint16_t indexToLocFormat, uint16_t numGlyphs)
+    {
+        LOG("Table glyf\n");
+        uint32_t current;
+        uint32_t next = TTTableLoca::offset(loca, indexToLocFormat, 0);
+        for (uint16_t i = 0; i < 8; i++) // TODO
+        {
+            current = next;
+            next = TTTableLoca::offset(loca, indexToLocFormat, i + 1);
+            LOG("%u ", i);
+            Glyph::Log(data + current, next - current);
+        }
+    }
+};
+
 struct TrueTypeFontFile
 {
     uint8_t *data;
@@ -768,6 +1032,8 @@ struct TrueTypeFontFile
     uint32_t os2Length;
     uint8_t *maxp;
     uint8_t *cmap;
+    uint8_t *loca;
+    uint8_t *glyf;
 
     void Log()
     {
@@ -780,6 +1046,12 @@ struct TrueTypeFontFile
         TTTableMaxp::Log(maxp);
         LOG("\n");
         TTTableCMap::Log(cmap);
+        LOG("\n");
+        uint16_t indexToLocFormat = TTTableHead::indexToLocFormat(head);
+        uint16_t numGlyphs = TTTableMaxp::numGlyphs(maxp);
+        TTTableLoca::Log(loca, indexToLocFormat, numGlyphs);
+        LOG("\n");
+        TTTableGlyf::Log(glyf, loca, indexToLocFormat, numGlyphs);
     }
 };
 
@@ -812,6 +1084,14 @@ void LoadFont(const char *path, size_t nameSize, PlatformLayer *platformLayer)
         {
             fontFile.cmap = fontFile.data + TTTableDirectory::TableOffset::offset(fontFile.data + offset);
         }
+        else if (TTTableDirectory::TableOffset::IsTag(fontFile.data + offset, "loca"))
+        {
+            fontFile.loca = fontFile.data + TTTableDirectory::TableOffset::offset(fontFile.data + offset);
+        }
+        else if (TTTableDirectory::TableOffset::IsTag(fontFile.data + offset, "glyf"))
+        {
+            fontFile.glyf = fontFile.data + TTTableDirectory::TableOffset::offset(fontFile.data + offset);
+        }
 
         offset += TTTableDirectory::TableOffset::size;
     }
@@ -827,8 +1107,13 @@ void LoadFont(const char *path, size_t nameSize, PlatformLayer *platformLayer)
     uint16_t asdasd = 0xffff;
     LOG("costam %u\n", asdasd);
 
-    LOG("STB_TRUE_TYPE %d :: parsed %d\n", 29, stbtt_FindGlyphIndex(&costam, 29));
-    LOG("STB_TRUE_TYPE %d :: parsed %d\n", 32, stbtt_FindGlyphIndex(&costam, 32));
-    LOG("STB_TRUE_TYPE %d :: parsed %d\n", 305, stbtt_FindGlyphIndex(&costam, 305));
+    // LOG("STB_TRUE_TYPE %d :: parsed %d\n", 29, stbtt_FindGlyphIndex(&costam, 29));
+    // LOG("STB_TRUE_TYPE %d :: parsed %d\n", 32, stbtt_FindGlyphIndex(&costam, 32));
+    // LOG("STB_TRUE_TYPE %d :: parsed %d\n", 305, stbtt_FindGlyphIndex(&costam, 305));
+
+    // for (int i = 0; i < TTTableMaxp::numGlyphs(fontFile.maxp); ++i) {
+    //     LOG("STB loc of %d == %d\n", i, stbtt__GetGlyfOffset(&costam, i) - 1828);
+    // }
+
     crash();
 }
