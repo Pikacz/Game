@@ -33,16 +33,11 @@ struct HeapStack
     ptrdiff_t topOffset;
     ptrdiff_t limit;
 
-    uint8_t *push(size_t size)
+    uint8_t *Push(size_t size)
     {
         uint8_t *result = memory + topOffset;
         topOffset += size;
         return result;
-    }
-
-    void pop(size_t size)
-    {
-        topOffset -= size;
     }
 };
 

@@ -5,6 +5,8 @@
 constexpr Pixel Color_white = Pixel(1.0f, 1.0f, 1.0f);
 constexpr Pixel Color_black = Pixel(0.0f, 0.0f, 0.0f);
 constexpr Pixel Color_yellow = Pixel(1.0f, 1.0f, 0.0f);
+constexpr Pixel Color_red = Pixel(1.0f, 0.0f, 0.0f);
+constexpr Pixel Color_green = Pixel(0.0f, 1.0f, 0.0f);
 
 void drawRect(RenderingInfo renderingInfo, gFloat x, gFloat y, gFloat width, gFloat height, Pixel color)
 {

@@ -1061,7 +1061,7 @@ void LoadFont(const char *path, size_t nameSize, PlatformLayer *platformLayer)
     TrueTypeFontFile fontFile;
 
     platformLayer->fileManager.OpenFileAndGetSize(path, nameSize, &fileHandle);
-    fontFile.data = platformLayer->assetsMemory.push(fileHandle.size);
+    fontFile.data = platformLayer->assetsMemory.Push(fileHandle.size);
     platformLayer->fileManager.ReadFileAndClose(fileHandle, fontFile.data);
 
     ptrdiff_t offset = TTTableDirectory::directoryTableSize;
@@ -1098,7 +1098,7 @@ void LoadFont(const char *path, size_t nameSize, PlatformLayer *platformLayer)
 
     fontFile.Log();
 
-    platformLayer->assetsMemory.pop(fileHandle.size);
+    // platformLayer->assetsMemory.pop(fileHandle.size);
 
     LOG("STB_TRUE_TYPE\n");
     stbtt_fontinfo costam;
@@ -1114,6 +1114,5 @@ void LoadFont(const char *path, size_t nameSize, PlatformLayer *platformLayer)
     // for (int i = 0; i < TTTableMaxp::numGlyphs(fontFile.maxp); ++i) {
     //     LOG("STB loc of %d == %d\n", i, stbtt__GetGlyfOffset(&costam, i) - 1828);
     // }
-
     crash();
 }
