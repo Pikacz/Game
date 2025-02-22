@@ -1,26 +1,4 @@
 {
     "terminal.integrated.defaultProfile.windows": "Command Prompt",
-    "emeraldwalk.runonsave": {
-        "commands": [
-            {
-                "match": ".*",
-                "cmd": "${workspaceFolder}\\misc\\win32\\build_if_needed.bat"
-            }
-        ]
-    },
-    "files.associations": {
-        "algorithm": "cpp",
-        "chrono": "cpp",
-        "optional": "cpp",
-        "system_error": "cpp",
-        "type_traits": "cpp",
-        "xlocmon": "cpp",
-        "xtr1common": "cpp",
-        "xutility": "cpp",
-        "xlocale": "cpp",
-        "ratio": "cpp",
-        "cstdlib": "cpp",
-        "vector": "cpp",
-        "xstring": "cpp"
-    }
+    "C_Cpp.clang_format_fallbackStyle": "Google"
 }

@@ -11,7 +11,10 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "windows-msvc-x64",
+            "compilerArgs": [
+                "/Zc:preprocessor"
+            ]
         },
         {
             "name": "Win32_game",
@@ -21,7 +24,40 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "windows-msvc-x64",
+            "compilerArgs": [
+                "/Zc:preprocessor"
+            ]
+        },
+        {
+            "name": "Win32_gameTests",
+            "includePath": [
+                "${workspaceFolder}/tools/tests/"
+            ],
+            "defines": [
+                "WIN32",
+                "TESTS"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64",
+            "compilerArgs": [
+                "/Zc:preprocessor"
+            ]
+        },
+        {
+            "name": "Win32_buildSystem",
+            "includePath": [],
+            "defines": [
+                "WIN32",
+                "TARGETING_MSVC"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64",
+            "compilerArgs": [
+                "/Zc:preprocessor"
+            ]
         }
     ],
     "version": 4

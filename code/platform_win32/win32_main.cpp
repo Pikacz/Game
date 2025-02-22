@@ -124,7 +124,11 @@ HWND WindowCreate(HINSTANCE hInstance, int clientWidth, int clientHeight)
         NULL, NULL, hInstance, NULL);
 }
 
+#ifndef TESTS
 int main(int argc, const char *argv[])
+#else
+int test_main(int argc, const char *argv[])
+#endif
 {
     HINSTANCE hInstance = GetModuleHandleA(NULL);
 #if SLOW

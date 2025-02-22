@@ -155,5 +155,17 @@ void drawGlyph(Section glyphs[], int arrowCount[], int glyphCount, int8_t bitmap
 }
 
 #if TESTS
+#include "TestsLib.h"
 
+CreateTest(testing_tests_1) {
+    TEST_ASSERT(0 == 1, "Testing tests1");
+}
+
+CreateTest(testing_tests_2) {
+    TEST_ASSERT(0 == 1);
+}
+
+CreateTest(testing_tests_3) {
+    
+}
 #endif
